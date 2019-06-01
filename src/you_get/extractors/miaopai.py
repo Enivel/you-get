@@ -8,6 +8,7 @@ from ..common import *
 import urllib.error
 import urllib.parse
 from ..util import fs
+import json
 
 fake_headers_mobile = {
     'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
@@ -19,22 +20,14 @@ fake_headers_mobile = {
 
 def miaopai_download_by_fid(fid, output_dir = '.', merge = False, info_only = False, **kwargs):
     '''Source: Android mobile'''
-    page_url = 'http://video.weibo.com/show?fid=' + fid + '&type=mp4'
+    page_url = 'https://video.h5.weibo.cn/s/video/object?object_id='+fid
+    json_string = get_content(page_url, headers=fake_headers_mobile)
+    video_info = json.loads(json_string)
 
-    mobile_page = get_content(page_url, headers=fake_headers_mobile)
-    url = match1(mobile_page, r'<video id=.*?src=[\'"](.*?)[\'"]\W')
-    if url is None:
-        wb_mp = re.search(r'<script src=([\'"])(.+?wb_mp\.js)\1>', mobile_page).group(2)
-        return miaopai_download_by_wbmp(wb_mp, fid, output_dir=output_dir, merge=merge,
-                                        info_only=info_only, total_size=None, **kwargs)
-    title = match1(mobile_page, r'<title>((.|\n)+?)</title>')
-    if not title:
-        title = fid
-    title = title.replace('\n', '_')
-    ext, size = 'mp4', url_info(url)[2]
-    print_info(site_info, title, ext, size)
-    if not info_only:
-        download_urls([url], title, ext, total_size=None, output_dir=output_dir, merge=merge)
+    title = video_info['data']['object']['summary']
+    url = video_info['data']['object']['stream']['hd_url'];
+    ext = 'mp4';
+    download_urls([url], title, ext, total_size=None, output_dir=output_dir, merge=merge)
 
 
 def miaopai_download_by_wbmp(wbmp_url, fid, info_only=False, **kwargs):
