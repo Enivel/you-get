@@ -24,7 +24,8 @@ def miaopai_download_by_fid(fid, output_dir = '.', merge = False, info_only = Fa
     json_string = get_content(page_url, headers=fake_headers_mobile)
     video_info = json.loads(json_string)
 
-    title = video_info['data']['object']['summary']
+    title = video_info['data']['object_id']
+
     url = video_info['data']['object']['stream']['hd_url'];
     ext = 'mp4';
     download_urls([url], title, ext, total_size=None, output_dir=output_dir, merge=merge)
