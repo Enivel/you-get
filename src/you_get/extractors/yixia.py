@@ -47,7 +47,6 @@ def yixia_miaopai_download_by_scid(scid, output_dir = '.', merge = True, info_on
 def yixia_xiaokaxiu_download_by_scid(scid, output_dir = '.', merge = True, info_only = False):
     """"""
     api_endpoint = 'http://api.xiaokaxiu.com/video/web/get_play_video?scid={scid}'.format(scid = scid)
-
     html = get_content(api_endpoint)
 
     api_content = loads(html)
@@ -65,10 +64,16 @@ def yixia_xiaokaxiu_download_by_scid(scid, output_dir = '.', merge = True, info_
 def yixia_download(url, output_dir = '.', merge = True, info_only = False, **kwargs):
     """wrapper"""
     hostname = urlparse(url).hostname
-    if 'n.miaopai.com' == hostname: 
-        smid = match1(url, r'n\.miaopai\.com/media/([^.]+)') 
+    if 'n.miaopai.com' == hostname:
+        smid = match1(url, r'n\.miaopai\.com/media/([^.]+)')
         miaopai_download_by_smid(smid, output_dir, merge, info_only)
         return
+    elif 'v.miaopai.com' == hostname:
+        if re.match(r'https://v.miaopai.com/iframe\?scid=.+', url):
+            yixia_download_by_scid = yixia_miaopai_download_by_scid
+            site_info = "Yixia miaopai iframe"
+            scid = match1(url, r'v\.miaopai\.com/iframe\?scid=(.+)')
+
     elif 'miaopai.com' in hostname:  #Miaopai
         yixia_download_by_scid = yixia_miaopai_download_by_scid
         site_info = "Yixia Miaopai"
@@ -86,6 +91,7 @@ def yixia_download(url, output_dir = '.', merge = True, info_only = False, **kwa
             scid = match1(url, r'http://v.xiaokaxiu.com/v/(.+)\.html')
         elif re.match(r'http://m.xiaokaxiu.com/m/.+\.html', url):  #Mobile
             scid = match1(url, r'http://m.xiaokaxiu.com/m/(.+)\.html')
+
 
     else:
         pass
